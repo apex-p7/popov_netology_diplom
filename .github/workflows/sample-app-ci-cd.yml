@@ -54,6 +54,14 @@ jobs:
           install -m 0755 /tmp/kubectl /usr/local/bin/kubectl
           kubectl version --client
 
+      - name: Install yc CLI
+        run: |
+          curl -fsSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i /opt/yc -n
+          echo "/opt/yc/bin" >> "$GITHUB_PATH"
+          mkdir -p /home/master/yandex-cloud/bin
+          ln -sf /opt/yc/bin/yc /home/master/yandex-cloud/bin/yc
+          /opt/yc/bin/yc version
+
       - name: Validate required secrets
         run: |
           [ -n "${{ secrets.YC_REGISTRY }}" ] || { echo "YC_REGISTRY secret is empty"; exit 1; }
@@ -68,5 +76,5 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
         run: |
-          kubectl -n sample-app set image deployment/static-site nginx=${{ secrets.YC_REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG} --record
+          kubectl -n sample-app set image deployment/static-site nginx=${{ secrets.YC_REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}
           kubectl -n sample-app rollout status deployment/static-site

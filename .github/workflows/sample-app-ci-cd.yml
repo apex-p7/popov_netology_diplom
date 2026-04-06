@@ -93,5 +93,11 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
         run: |
-          kubectl -n sample-app set image deployment/static-site nginx=${{ secrets.YC_REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}
-          kubectl -n sample-app rollout status deployment/static-site
+          IMAGE_TAG="${TAG#v}"
+          kubectl -n sample-app set image deployment/static-site nginx=${{ secrets.YC_REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
+          kubectl -n sample-app rollout status deployment/static-site --timeout=5m || {
+            kubectl -n sample-app get pods -o wide
+            kubectl -n sample-app describe deployment static-site
+            kubectl -n sample-app get events --sort-by=.metadata.creationTimestamp | tail -n 50
+            exit 1
+          }

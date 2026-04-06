@@ -7,6 +7,7 @@ on:
 
 env:
   IMAGE_NAME: sample-static-site
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   build-and-push:
@@ -46,6 +47,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install kubectl
+        run: |
+          curl -fsSL -o /tmp/kubectl "https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl"
+          install -m 0755 /tmp/kubectl /usr/local/bin/kubectl
+          kubectl version --client
+
+      - name: Validate required secrets
+        run: |
+          [ -n "${{ secrets.YC_REGISTRY }}" ] || { echo "YC_REGISTRY secret is empty"; exit 1; }
+          [ -n "${{ secrets.KUBE_CONFIG_B64 }}" ] || { echo "KUBE_CONFIG_B64 secret is empty"; exit 1; }
 
       - name: Configure kubeconfig
         run: |

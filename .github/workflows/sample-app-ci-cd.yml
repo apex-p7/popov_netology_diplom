@@ -58,8 +58,6 @@ jobs:
         run: |
           curl -fsSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i /opt/yc -n
           echo "/opt/yc/bin" >> "$GITHUB_PATH"
-          mkdir -p /home/master/yandex-cloud/bin
-          ln -sf /opt/yc/bin/yc /home/master/yandex-cloud/bin/yc
           /opt/yc/bin/yc version
 
       - name: Validate required secrets
@@ -71,6 +69,10 @@ jobs:
         run: |
           mkdir -p ~/.kube
           echo "${{ secrets.KUBE_CONFIG_B64 }}" | base64 -d > ~/.kube/config
+          # В kubeconfig может быть абсолютный путь к yc из локальной VM.
+          # На GitHub runner заменяем его на команду yc из PATH.
+          sed -i 's|command: /home/master/yandex-cloud/bin/yc|command: yc|g' ~/.kube/config
+          sed -i 's|command: /root/yandex-cloud/bin/yc|command: yc|g' ~/.kube/config
 
       - name: Deploy image to cluster
         env:

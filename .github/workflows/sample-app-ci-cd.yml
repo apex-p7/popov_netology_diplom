@@ -61,16 +61,22 @@ jobs:
           /opt/yc/bin/yc version
 
       - name: Validate required secrets
+        env:
+          YC_REGISTRY: ${{ secrets.YC_REGISTRY }}
+          KUBE_CONFIG_B64: ${{ secrets.KUBE_CONFIG_B64 }}
+          YC_SA_JSON: ${{ secrets.YC_SA_JSON }}
         run: |
-          [ -n "${{ secrets.YC_REGISTRY }}" ] || { echo "YC_REGISTRY secret is empty"; exit 1; }
-          [ -n "${{ secrets.KUBE_CONFIG_B64 }}" ] || { echo "KUBE_CONFIG_B64 secret is empty"; exit 1; }
-          [ -n "${{ secrets.YC_SA_JSON }}" ] || { echo "YC_SA_JSON secret is empty"; exit 1; }
+          [ -n "${YC_REGISTRY}" ] || { echo "YC_REGISTRY secret is empty"; exit 1; }
+          [ -n "${KUBE_CONFIG_B64}" ] || { echo "KUBE_CONFIG_B64 secret is empty"; exit 1; }
+          [ -n "${YC_SA_JSON}" ] || { echo "YC_SA_JSON secret is empty"; exit 1; }
 
       - name: Configure yc profile
+        env:
+          YC_SA_JSON: ${{ secrets.YC_SA_JSON }}
         run: |
           umask 077
           SA_KEY="$(mktemp)"
-          echo '${{ secrets.YC_SA_JSON }}' > "${SA_KEY}"
+          printf '%s' "${YC_SA_JSON}" > "${SA_KEY}"
           yc config profile create default 2>/dev/null || true
           yc config set service-account-key "${SA_KEY}"
 

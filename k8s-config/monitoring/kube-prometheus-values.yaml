@@ -1,0 +1,26 @@
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    scrapeInterval: 30s
+
+grafana:
+  adminPassword: "CHANGE_ME_IN_PRODUCTION"
+  service:
+    type: LoadBalancer
+    port: 80
+    targetPort: 3000
+  persistence:
+    enabled: false
+
+alertmanager:
+  alertmanagerSpec:
+    storage: {}
+
+kubeStateMetrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
+
+defaultRules:
+  create: true

@@ -1,0 +1,11 @@
+cloud_id  = "b1gxxxxxxxxxxxxxxxx"
+folder_id = "b1gxxxxxxxxxxxxxxxx"
+# Уникальное глобально имя бакета:
+state_bucket_name = "mycompany-terraform-state-ru-central1"
+
+# Аутентификация (выберите 1 вариант):
+# 1) Через переменную окружения YC_TOKEN (предпочтительно)
+# 2) Или явно:
+# yc_token = "y0_..."
+# 3) Или ключ сервисного аккаунта:
+# yc_service_account_key_file = "../terraform-sa.json"

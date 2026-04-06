@@ -1,0 +1,52 @@
+name: terraform infra
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "terraform-infra/**"
+      - ".github/workflows/terraform-main.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform-infra
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.5
+
+      - name: Write Terraform SA key
+        run: echo '${{ secrets.YC_SA_JSON }}' > "${{ github.workspace }}/terraform-sa.json"
+
+      - name: Terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          terraform init -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="key=main/terraform.tfstate" \
+            -backend-config="region=ru-central1" \
+            -backend-config="endpoint=https://storage.yandexcloud.net" \
+            -backend-config="skip_region_validation=true" \
+            -backend-config="skip_credentials_validation=true"
+
+      - name: Terraform plan
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          terraform plan -input=false \
+            -var="cloud_id=${{ secrets.YC_CLOUD_ID }}" \
+            -var="folder_id=${{ secrets.YC_FOLDER_ID }}" \
+            -var="service_account_key_file=${{ github.workspace }}/terraform-sa.json" \
+            -var="registry_name=${{ secrets.YC_REGISTRY_NAME }}"
+  

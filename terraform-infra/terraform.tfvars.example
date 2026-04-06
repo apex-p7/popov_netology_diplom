@@ -1,0 +1,17 @@
+cloud_id  = "bb1gcjrlk0i1d3op3q77a"
+folder_id = "b1geh8jbc1scqn4i6uuh"
+
+# Имя реестра (уникально в каталоге)
+registry_name = "sample-app-registry"
+
+# Путь к JSON-ключу SA Terraform (создайте после bootstrap: yc iam key create ...)
+service_account_key_file = "../terraform-sa.json"
+
+# Оставьте пустым для автоматического выбора поддерживаемой версии.
+k8s_version = ""
+
+# Экономия бюджета: минимальные vCPU/RAM
+node_cores        = 2
+node_memory_gb    = 4
+node_disk_gb      = 32
+node_count_per_zone = 1

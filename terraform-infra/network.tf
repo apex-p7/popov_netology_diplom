@@ -100,7 +100,7 @@ resource "yandex_vpc_security_group" "k8s_services_access" {
 
 resource "yandex_vpc_security_group" "k8s_ssh_access" {
   name        = "${var.cluster_name}-ssh"
-  description = "SSH на ноды (ограничьте trusted CIDR, bastion или VPN)"
+  description = "SSH на ноды"
   network_id  = yandex_vpc_network.this.id
 
   ingress {

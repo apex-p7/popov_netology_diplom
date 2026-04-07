@@ -1,5 +1,4 @@
 locals {
-  # Подсети не должны пересекаться с pod/service CIDR.
   subnets = {
     "a" = {
       zone = "ru-central1-a"

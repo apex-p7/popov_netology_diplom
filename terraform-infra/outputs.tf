@@ -16,7 +16,7 @@ output "container_registry_endpoint" {
 }
 
 output "kubectl_config_hint" {
-  description = "Идентификатор облака для kubectl (после установки yc CLI)."
+  description = "Идентификатор облака для kubectl."
   value       = <<-EOT
     yc managed-kubernetes cluster get-credentials ${yandex_kubernetes_cluster.this.id} --external --force
     kubectl get pods -A

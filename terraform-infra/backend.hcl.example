@@ -1,9 +1,0 @@
-bucket   = "ИМЯ_БАКЕТА_ИЗ_BOOTSTRAP"
-key      = "main/terraform.tfstate"
-region   = "ru-central1"
-endpoints = {
-  s3 = "https://storage.yandexcloud.net"
-}
-skip_region_validation      = true
-skip_credentials_validation = true
-skip_requesting_account_id  = true

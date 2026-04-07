@@ -11,12 +11,6 @@ variable "default_zone" {
   default = "ru-central1-a"
 }
 
-variable "service_account_key_file" {
-  description = "JSON-ключ сервисного аккаунта Terraform (создаётся вручную после bootstrap, не коммитить)."
-  type        = string
-  default     = ""
-}
-
 variable "network_name" {
   type    = string
   default = "k8s-lab-network"
@@ -28,7 +22,6 @@ variable "cluster_name" {
 }
 
 variable "k8s_version" {
-  description = "Версия Kubernetes. Оставьте пустой (\"\") для выбора поддерживаемой версии по умолчанию."
   type        = string
   default     = ""
 }
@@ -39,7 +32,6 @@ variable "registry_name" {
 }
 
 variable "node_cores" {
-  description = "vCPU на ноду (минимизируйте для экономии купона)."
   type        = number
   default     = 2
 }
@@ -61,7 +53,6 @@ variable "node_count_per_zone" {
 }
 
 variable "ssh_allowed_cidrs" {
-  description = "Разрешённые CIDR для SSH доступа к нодам. Для production используйте bastion/VPN и ограниченные диапазоны."
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }

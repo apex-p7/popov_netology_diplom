@@ -45,6 +45,7 @@ jobs:
     needs: build-and-push
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -53,6 +54,14 @@ jobs:
           curl -fsSL -o /tmp/kubectl "https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl"
           install -m 0755 /tmp/kubectl /usr/local/bin/kubectl
           kubectl version --client
+
+      - name: Install Helm
+        run: |
+          HELM_VERSION="v3.14.4"
+          curl -fsSL -o helm.tar.gz https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz
+          tar -zxvf helm.tar.gz
+          install -m 0755 linux-amd64/helm /usr/local/bin/helm
+          helm version
 
       - name: Install yc CLI
         run: |
@@ -84,17 +93,21 @@ jobs:
         run: |
           mkdir -p ~/.kube
           echo "${{ secrets.KUBE_CONFIG_B64 }}" | base64 -d > ~/.kube/config
-          # В kubeconfig может быть абсолютный путь к yc из локальной VM.
-          # На GitHub runner заменяем его на команду yc из PATH.
           sed -i 's|command: /home/master/yandex-cloud/bin/yc|command: yc|g' ~/.kube/config
           sed -i 's|command: /root/yandex-cloud/bin/yc|command: yc|g' ~/.kube/config
 
-      - name: Deploy image to cluster
+      - name: Deploy via Helm
         env:
           TAG: ${{ github.ref_name }}
         run: |
           IMAGE_TAG="${TAG#v}"
-          kubectl -n sample-app set image deployment/static-site nginx=${{ secrets.YC_REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
+
+          helm upgrade --install static-site ./helm \
+            --namespace sample-app \
+            --create-namespace \
+            --set image.repository=${{ secrets.YC_REGISTRY }}/${{ env.IMAGE_NAME }} \
+            --set image.tag=${IMAGE_TAG}
+
           kubectl -n sample-app rollout status deployment/static-site --timeout=5m || {
             kubectl -n sample-app get pods -o wide
             kubectl -n sample-app describe deployment static-site

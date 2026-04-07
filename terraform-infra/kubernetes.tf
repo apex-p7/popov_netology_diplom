@@ -12,17 +12,12 @@ resource "yandex_kubernetes_cluster" "this" {
 
     regional {
       region = "ru-central1"
-      location {
-        zone      = yandex_vpc_subnet.subnet_a.zone
-        subnet_id = yandex_vpc_subnet.subnet_a.id
-      }
-      location {
-        zone      = yandex_vpc_subnet.subnet_b.zone
-        subnet_id = yandex_vpc_subnet.subnet_b.id
-      }
-      location {
-        zone      = yandex_vpc_subnet.subnet_d.zone
-        subnet_id = yandex_vpc_subnet.subnet_d.id
+      dynamic "location" {
+        for_each = yandex_vpc_subnet.this
+        content {
+          zone      = location.value.zone
+          subnet_id = location.value.id
+        }
       }
     }
 
@@ -41,7 +36,7 @@ resource "yandex_kubernetes_cluster" "this" {
 }
 
 resource "yandex_kubernetes_node_group" "workers" {
-  name = "${var.cluster_name}-workers"
+  name       = "${var.cluster_name}-workers"
   cluster_id = yandex_kubernetes_cluster.this.id
   version    = var.k8s_version != "" ? var.k8s_version : null
 
@@ -63,12 +58,8 @@ resource "yandex_kubernetes_node_group" "workers" {
     }
 
     network_interface {
-      nat                = true
-      subnet_ids         = [
-        yandex_vpc_subnet.subnet_a.id,
-        yandex_vpc_subnet.subnet_b.id,
-        yandex_vpc_subnet.subnet_d.id,
-      ]
+      nat        = true
+      subnet_ids = [for subnet in values(yandex_vpc_subnet.this) : subnet.id]
       security_group_ids = [
         yandex_vpc_security_group.k8s_cluster_nodegroup_traffic.id,
         yandex_vpc_security_group.k8s_nodegroup_traffic.id,
@@ -80,19 +71,16 @@ resource "yandex_kubernetes_node_group" "workers" {
 
   scale_policy {
     fixed_scale {
-      size = var.node_count_per_zone * 3
+      size = var.node_count_per_zone * length(local.subnets)
     }
   }
 
   allocation_policy {
-    location {
-      zone = "ru-central1-a"
-    }
-    location {
-      zone = "ru-central1-b"
-    }
-    location {
-      zone = "ru-central1-d"
+    dynamic "location" {
+      for_each = local.subnets
+      content {
+        zone = location.value.zone
+      }
     }
   }
 

@@ -3,25 +3,13 @@ resource "yandex_vpc_network" "this" {
   description = "VPC для Managed Kubernetes"
 }
 
-resource "yandex_vpc_subnet" "subnet_a" {
-  name           = "${var.network_name}-a"
-  zone           = "ru-central1-a"
-  network_id     = yandex_vpc_network.this.id
-  v4_cidr_blocks = [local.subnet_cidr_a]
-}
+resource "yandex_vpc_subnet" "this" {
+  for_each = local.subnets
 
-resource "yandex_vpc_subnet" "subnet_b" {
-  name           = "${var.network_name}-b"
-  zone           = "ru-central1-b"
+  name           = "${var.network_name}-${each.key}"
+  zone           = each.value.zone
   network_id     = yandex_vpc_network.this.id
-  v4_cidr_blocks = [local.subnet_cidr_b]
-}
-
-resource "yandex_vpc_subnet" "subnet_d" {
-  name           = "${var.network_name}-d"
-  zone           = "ru-central1-d"
-  network_id     = yandex_vpc_network.this.id
-  v4_cidr_blocks = [local.subnet_cidr_d]
+  v4_cidr_blocks = [each.value.cidr]
 }
 
 resource "yandex_vpc_security_group" "k8s_cluster_nodegroup_traffic" {
@@ -97,29 +85,29 @@ resource "yandex_vpc_security_group" "k8s_services_access" {
 
   ingress {
     description    = "HTTP"
-    port             = 80
-    protocol         = "TCP"
-    v4_cidr_blocks   = ["0.0.0.0/0"]
+    port           = 80
+    protocol       = "TCP"
+    v4_cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
     description    = "HTTPS"
-    port             = 443
-    protocol         = "TCP"
-    v4_cidr_blocks   = ["0.0.0.0/0"]
+    port           = 443
+    protocol       = "TCP"
+    v4_cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
 resource "yandex_vpc_security_group" "k8s_ssh_access" {
   name        = "${var.cluster_name}-ssh"
-  description = "SSH на ноды (по необходимости сузьте CIDR)"
+  description = "SSH на ноды (ограничьте trusted CIDR, bastion или VPN)"
   network_id  = yandex_vpc_network.this.id
 
   ingress {
     description    = "SSH"
-    port             = 22
-    protocol         = "TCP"
-    v4_cidr_blocks   = ["0.0.0.0/0"]
+    port           = 22
+    protocol       = "TCP"
+    v4_cidr_blocks = var.ssh_allowed_cidrs
   }
 }
 
@@ -130,22 +118,22 @@ resource "yandex_vpc_security_group" "k8s_cluster_traffic" {
 
   ingress {
     description    = "Kubernetes API 443"
-    port             = 443
-    protocol         = "TCP"
-    v4_cidr_blocks   = ["0.0.0.0/0"]
+    port           = 443
+    protocol       = "TCP"
+    v4_cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
     description    = "Kubernetes API 6443"
-    port             = 6443
-    protocol         = "TCP"
-    v4_cidr_blocks   = ["0.0.0.0/0"]
+    port           = 6443
+    protocol       = "TCP"
+    v4_cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
     description    = "К metric-server на нодах"
-    port             = 4443
-    protocol         = "TCP"
-    v4_cidr_blocks   = [local.cluster_ipv4_cidr]
+    port           = 4443
+    protocol       = "TCP"
+    v4_cidr_blocks = [local.cluster_ipv4_cidr]
   }
 }

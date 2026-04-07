@@ -11,7 +11,7 @@ output "state_bucket_name" {
 output "s3_access_key_id" {
   description = "Ключ для переменных AWS_ACCESS_KEY_ID при backend s3."
   value       = yandex_iam_service_account_static_access_key.terraform_state.access_key
-  sensitive   = true
+  sensitive   = false
 }
 
 output "s3_secret_access_key" {

@@ -28,5 +28,5 @@ resource "yandex_storage_bucket" "terraform_state" {
 
 resource "yandex_iam_service_account_static_access_key" "terraform_state" {
   service_account_id = yandex_iam_service_account.terraform.id
-  description          = "Terraform S3 backend"
+  description        = "Terraform S3 backend"
 }

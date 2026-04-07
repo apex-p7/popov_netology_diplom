@@ -59,3 +59,9 @@ variable "node_count_per_zone" {
   type        = number
   default     = 1
 }
+
+variable "ssh_allowed_cidrs" {
+  description = "Разрешённые CIDR для SSH доступа к нодам. Для production используйте bastion/VPN и ограниченные диапазоны."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
